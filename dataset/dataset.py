@@ -9,6 +9,7 @@ NIMA is released under the MIT license. See LICENSE for the fill license text.
 import os
 
 import pandas as pd
+import numpy as np
 from PIL import Image
 
 import torch
