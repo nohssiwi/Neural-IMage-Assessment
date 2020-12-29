@@ -56,6 +56,6 @@ class RunningMetric(object):
                 'acc': self.accuracy(pred, gt)
             }
 
-def get_metrics(params):
+def get_metrics():
     met = RunningMetric(metric_type='MULTI')
     return met

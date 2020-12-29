@@ -37,7 +37,7 @@ def main(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     writer = SummaryWriter()
 
-    metric = metrics_selector.get_metrics(params)
+    metric = metrics_selector.get_metrics()
 
     train_transform = transforms.Compose([
         transforms.Scale(256),
@@ -145,7 +145,7 @@ def main(config):
                 val_loss = emd_loss(labels, outputs)
                 batch_val_losses.append(val_loss.item())
                 metric.update(outputs, labels)
-                
+
             avg_val_loss = sum(batch_val_losses) / (len(valset) // config.val_batch_size + 1)
             val_losses.append(avg_val_loss)
             print('Epoch %d completed. Mean EMD loss on val set: %.4f.' % (epoch + 1, avg_val_loss))
