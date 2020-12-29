@@ -249,7 +249,7 @@ if __name__ == '__main__':
     parser.add_argument('--ckpt_path', type=str, default='./ckpts')
     parser.add_argument('--multi_gpu', type=bool, default=False)
     parser.add_argument('--gpu_ids', type=list, default=None)
-    parser.add_argument('--warm_start', type=bool, default=False)
+    parser.add_argument('--warm_start', type=bool, default=True)
     parser.add_argument('--warm_start_epoch', type=int, default=82)
     parser.add_argument('--early_stopping_patience', type=int, default=10)
     parser.add_argument('--save_fig', action='store_true')
