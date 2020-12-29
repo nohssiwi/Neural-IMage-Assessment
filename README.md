@@ -32,7 +32,7 @@ To start training on the AVA dataset, first download the dataset from the link a
 which already splits the dataset (You can create your own split of course). Then do
 
 ```python
-python main.py --img_path /path/to/images/ --train --train_csv_file /path/to/train_labels.csv --val_csv_file /path/to/val_labels.csv --conv_base_lr 3e-4 --dense_lr 3e-3 --decay --ckpt_path /path/to/ckpts --epochs 100 --early_stoppping_patience 10
+python main.py --train --conv_base_lr 3e-4 --dense_lr 3e-3 --decay  --epochs 100 --early_stopping_patience 10
 ```
 
 For inference, here the predicted score mean and std is generated. See ```predictions/``` for an example format.

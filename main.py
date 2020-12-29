@@ -54,8 +54,8 @@ def main(config):
     model = NIMA(base_model)
 
     if config.warm_start:
-        model.load_state_dict(torch.load(os.path.join(config.ckpt_path, 'epoch-%d.pth' % config.warm_start_epoch)))
-        print('Successfully loaded model epoch-%d.pth' % config.warm_start_epoch)
+        model.load_state_dict(torch.load(os.path.join(config.ckpt_path, 'pre-epoch-%d.pth' % config.warm_start_epoch)))
+        print('Successfully loaded model pre-epoch-%d.pth' % config.warm_start_epoch)
 
     if config.multi_gpu:
         model.features = torch.nn.DataParallel(model.features, device_ids=config.gpu_ids)
@@ -248,7 +248,7 @@ if __name__ == '__main__':
     parser.add_argument('--multi_gpu', type=bool, default=False)
     parser.add_argument('--gpu_ids', type=list, default=None)
     parser.add_argument('--warm_start', type=bool, default=False)
-    parser.add_argument('--warm_start_epoch', type=int, default=0)
+    parser.add_argument('--warm_start_epoch', type=int, default=82)
     parser.add_argument('--early_stopping_patience', type=int, default=10)
     parser.add_argument('--save_fig', action='store_true')
 
