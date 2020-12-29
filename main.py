@@ -136,8 +136,8 @@ def main(config):
             # do validation after each epoch
             batch_val_losses = []
             for data in val_loader:
-                images = data['image'].to(device)
-                labels = data['annotations'].to(device).float()
+                images = data[0].to(device)
+                labels = data[1].to(device).float()
                 with torch.no_grad():
                     outputs = model(images)
                 # outputs = outputs.view(-1, 10, 1)
