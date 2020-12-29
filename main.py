@@ -29,11 +29,15 @@ from dataset.dataset import TENCENT
 
 from model.model import *
 
+import metrics as metrics_selector
+
 
 def main(config):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     writer = SummaryWriter()
+
+    metric = metrics_selector.get_metrics(params)
 
     train_transform = transforms.Compose([
         transforms.Scale(256),
@@ -90,7 +94,8 @@ def main(config):
         init_val_loss = float('inf')
         train_losses = []
         val_losses = []
-        for epoch in range(config.warm_start_epoch, config.epochs):
+        # for epoch in range(config.warm_start_epoch, config.epochs):
+        for epoch in range(0, config.epochs):
             batch_losses = []
             for i, data in enumerate(train_loader):
                 # images = data['image'].to(device)
@@ -139,10 +144,23 @@ def main(config):
                 outputs = outputs.view(-1, 5, 1)
                 val_loss = emd_loss(labels, outputs)
                 batch_val_losses.append(val_loss.item())
+                metric.update(outputs, labels)
+                
             avg_val_loss = sum(batch_val_losses) / (len(valset) // config.val_batch_size + 1)
             val_losses.append(avg_val_loss)
             print('Epoch %d completed. Mean EMD loss on val set: %.4f.' % (epoch + 1, avg_val_loss))
             writer.add_scalars('epoch losses', {'epoch train loss': avg_loss, 'epoch val loss': avg_val_loss}, epoch + 1)
+
+            # writer.add_scalar('validation_loss_{}'.format(t), tot_loss[t]/num_val_batches, n_iter)
+            metric_results = metric.get_result()
+            metric_str = ''
+            for metric_key in metric_results:
+                # writer.add_scalar('metric_{}_{}'.format(metric_key, t), metric_results[metric_key], n_iter)
+                metric_str += '{} = {}  '.format(metric_key, metric_results[metric_key])
+            metric.reset()
+            # metric_str += 'loss = {}'.format(tot_loss[t]/num_val_batches)
+            print(metric_str)
+            # writer.add_scalar('validation_loss', tot_loss['all']/len(val_dst), n_iter)
 
             # Use early stopping to monitor training
             if avg_val_loss < init_val_loss:
