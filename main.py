@@ -103,8 +103,11 @@ def main(config):
                 images = data[0].to(device)
                 labels = data[1].to(device).float()
                 outputs = model(images)
-                # outputs = outputs.view(-1, 10, 1)
-                outputs = outputs.view(-1, 5, 1)
+                outputs = outputs.view(-1, 10, 1)
+                # 10 classes to 5 classes
+                outputs = outputs.view(-1, 5, 2, 1)
+                # shape = (-1, 5, 1)
+                outputs = outputs.sum(dim=2)
 
                 optimizer.zero_grad()
 
@@ -140,8 +143,11 @@ def main(config):
                 labels = data[1].to(device).float()
                 with torch.no_grad():
                     outputs = model(images)
-                # outputs = outputs.view(-1, 10, 1)
-                outputs = outputs.view(-1, 5, 1)
+                outputs = outputs.view(-1, 10, 1)
+                # 10 classes to 5 classes
+                outputs = outputs.view(-1, 5, 2, 1)
+                # shape = (-1, 5, 1)
+                outputs = outputs.sum(dim=2)
                 val_loss = emd_loss(labels, outputs)
                 batch_val_losses.append(val_loss.item())
                 metric.update(outputs, labels)
@@ -206,8 +212,11 @@ def main(config):
         for data in test_loader:
             image = data['image'].to(device)
             output = model(image)
-            # output = output.view(10, 1)
-            output = output.view(5, 1)
+            output = output.view(10, 1)
+            # 10 classes to 5 classes
+            outputs = outputs.view(5, 2, 1)
+            # shape = (5, 1)
+            outputs = outputs.sum(dim=1)
             predicted_mean, predicted_std = 0.0, 0.0
             for i, elem in enumerate(output, 1):
                 predicted_mean += i * elem
