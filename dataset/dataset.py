@@ -51,6 +51,7 @@ class TENCENT(data.Dataset):
     def __init__(self, type, root='Qomex_2020_mobile_game_imges', transform=None):
         self.root = root
         self.type = type
+        self.transform = transform
 
         data = pd.read_csv(root + '/subjective_scores_v2/all.csv')
 
