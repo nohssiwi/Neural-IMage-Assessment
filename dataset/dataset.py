@@ -46,6 +46,65 @@ class AVADataset(data.Dataset):
         return sample
 
 
+class TENCENT(data.Dataset):
+    def __init__(self, type, root='Qomex_2020_mobile_game_imges', transform=None):
+        self.root = root
+        self.type = type
+
+        data = pd.read_csv(root + '/subjective_scores_v2/all.csv')
+
+        dataset = {
+            'train' : [], 
+            'val' : [],
+            'test' : []
+        }
+
+        for index, row in data.iterrows():
+            item = {
+                'filename' : row['filename'],
+                'label_h' : torch.tensor(self.distribution(row['h_0':'h_19'])),
+                'label_c' : torch.tensor(self.distribution(row['c_0':'c_19'])),
+                'label_f' : torch.tensor(self.distribution(row['f_0':'f_19'])),
+                'label_o' : torch.tensor(self.distribution(row['o_0':'o_19']))
+            }
+            if row['type'] == 'train' :
+                dataset['train'].append(item)
+            elif row['type'] == 'validation' :
+                dataset['val'].append(item)
+            else :
+                dataset['test'].append(item)
+
+        self.dataset = dataset
+
+
+    def distribution(self, row):
+        dis = np.zeros(5)
+        for v in row :
+            v = int(v)
+            dis[v-1] = dis[v-1] + 1
+        dis = dis / 20
+        dis = dis.reshape(-1, 1)
+        return dis
+
+
+    def __len__(self):
+        return len(self.dataset[self.type])
+
+    def __getitem__(self, index):
+        filename = self.dataset[self.type][index]['filename']
+        label_h = self.dataset[self.type][index]['label_h']
+        label_c = self.dataset[self.type][index]['label_c']
+        label_f = self.dataset[self.type][index]['label_f']
+        label_o = self.dataset[self.type][index]['label_o']
+        img = Image.open(self.root + '/original_images/' + filename).convert('RGB')
+    
+        if self.transform:
+            img = self.transform(img)
+
+        # return img, label_h, label_c, label_f, label_o
+        return img, label_o
+
+
 if __name__ == '__main__':
 
     # sanity check

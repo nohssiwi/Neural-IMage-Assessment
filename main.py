@@ -25,6 +25,7 @@ import torchvision.models as models
 from tensorboardX import SummaryWriter
 
 from dataset.dataset import AVADataset
+from dataset.dataset import TENCENT
 
 from model.model import *
 
@@ -73,8 +74,12 @@ def main(config):
     print('Trainable params: %.2f million' % (param_num / 1e6))
 
     if config.train:
-        trainset = AVADataset(csv_file=config.train_csv_file, root_dir=config.img_path, transform=train_transform)
-        valset = AVADataset(csv_file=config.val_csv_file, root_dir=config.img_path, transform=val_transform)
+        
+        trainset = TENCENT(type='train', transform=train_transform)
+        valset = TENCENT(type='val', transform=val_transform)
+        
+        # trainset = AVADataset(csv_file=config.train_csv_file, root_dir=config.img_path, transform=train_transform)
+        # valset = AVADataset(csv_file=config.val_csv_file, root_dir=config.img_path, transform=val_transform)
 
         train_loader = torch.utils.data.DataLoader(trainset, batch_size=config.train_batch_size,
             shuffle=True, num_workers=config.num_workers)
@@ -88,10 +93,13 @@ def main(config):
         for epoch in range(config.warm_start_epoch, config.epochs):
             batch_losses = []
             for i, data in enumerate(train_loader):
-                images = data['image'].to(device)
-                labels = data['annotations'].to(device).float()
+                # images = data['image'].to(device)
+                # labels = data['annotations'].to(device).float()
+                images = data[0].to(device)
+                labels = data[1].to(device).float()
                 outputs = model(images)
-                outputs = outputs.view(-1, 10, 1)
+                # outputs = outputs.view(-1, 10, 1)
+                outputs = outputs.view(-1, 5, 1)
 
                 optimizer.zero_grad()
 
@@ -127,7 +135,8 @@ def main(config):
                 labels = data['annotations'].to(device).float()
                 with torch.no_grad():
                     outputs = model(images)
-                outputs = outputs.view(-1, 10, 1)
+                # outputs = outputs.view(-1, 10, 1)
+                outputs = outputs.view(-1, 5, 1)
                 val_loss = emd_loss(labels, outputs)
                 batch_val_losses.append(val_loss.item())
             avg_val_loss = sum(batch_val_losses) / (len(valset) // config.val_batch_size + 1)
@@ -170,7 +179,8 @@ def main(config):
         model.eval()
         # compute mean score
         test_transform = val_transform
-        testset = AVADataset(csv_file=config.test_csv_file, root_dir=config.img_path, transform=val_transform)
+        # testset = AVADataset(csv_file=config.test_csv_file, root_dir=config.img_path, transform=val_transform)
+        testset = TENCENT(type='test', transform=train_transform)
         test_loader = torch.utils.data.DataLoader(testset, batch_size=config.test_batch_size, shuffle=False, num_workers=config.num_workers)
 
         mean_preds = []
@@ -178,7 +188,8 @@ def main(config):
         for data in test_loader:
             image = data['image'].to(device)
             output = model(image)
-            output = output.view(10, 1)
+            # output = output.view(10, 1)
+            output = output.view(5, 1)
             predicted_mean, predicted_std = 0.0, 0.0
             for i, elem in enumerate(output, 1):
                 predicted_mean += i * elem

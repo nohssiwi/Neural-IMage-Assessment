@@ -12,7 +12,7 @@ import torch.nn as nn
 class NIMA(nn.Module):
 
     """Neural IMage Assessment model by Google"""
-    def __init__(self, base_model, num_classes=10):
+    def __init__(self, base_model, num_classes=5):
         super(NIMA, self).__init__()
         self.features = base_model.features
         self.classifier = nn.Sequential(
