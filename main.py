@@ -307,7 +307,7 @@ if __name__ == '__main__':
         config.train = False
         config.test = True
         config.warm_start = True
-        config.warm_start_epoc = best_epoch
+        config.warm_start_epoch = best_epoch
         config.best_fold = index + 1
         print('test')
         main(config)
