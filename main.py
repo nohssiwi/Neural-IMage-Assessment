@@ -96,6 +96,7 @@ def main(config, fold=0):
         count = 0
         init_val_loss = float('inf')
         init_val_plcc = 0
+        best_epoch = 0
 
         train_losses = []
         val_losses = []
@@ -184,6 +185,7 @@ def main(config, fold=0):
                 if not os.path.exists(config.ckpt_path):
                     os.makedirs(config.ckpt_path)
                 torch.save(model.state_dict(), os.path.join(config.ckpt_path, 'epoch-%d-%d-%s.pth' % (epoch + 1, fold, config.task)))
+                best_epoch = epoch + 1
                 print('Done.\n')
                 # reset count
                 count = 0
@@ -194,7 +196,7 @@ def main(config, fold=0):
                     break
 
         print('Training completed.')
-        return init_val_plcc, epoch+1
+        return init_val_plcc, best_epoch
         '''
         # use tensorboard to log statistics instead
         if config.save_fig:
@@ -290,23 +292,23 @@ if __name__ == '__main__':
     config = parser.parse_args()
 
     def _5foldcv() :
-        config.task = 'h'
-        # config.train = True
-        # plcc_list = []
-        # epoch_list = []
-        # for i in range(0, 5) :
-        #     print(i+1, ' fold')
-        #     plcc, epoch = main(config, i+1)
-        #     plcc_list.append(plcc)
-        #     epoch_list.append(epoch)
-        # print(plcc_list)
-        # print(epoch_list)
-        # best_plcc = max(plcc_list)
-        # index = plcc_list.index(best_plcc)
-        # best_epoch = epoch_list[index]
+        config.task = 'c'
+        config.train = True
+        plcc_list = []
+        epoch_list = []
+        for i in range(0, 5) :
+            print(i+1, ' fold')
+            plcc, epoch = main(config, i+1)
+            plcc_list.append(plcc)
+            epoch_list.append(epoch)
+        print(plcc_list)
+        print(epoch_list)
+        best_plcc = max(plcc_list)
+        index = plcc_list.index(best_plcc)
+        best_epoch = epoch_list[index]
 
-        index = 1
-        best_epoch = 57
+        # index = 1
+        # best_epoch = 57
         config.train = False
         config.test = True
         config.warm_start = True
