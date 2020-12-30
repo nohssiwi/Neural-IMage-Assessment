@@ -32,7 +32,7 @@ from model.model import *
 import metrics as metrics_selector
 
 
-def main(config, fold):
+def main(config, fold=0):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     writer = SummaryWriter()
@@ -54,6 +54,9 @@ def main(config, fold):
     model = NIMA(base_model)
 
     if config.warm_start:
+        model.load_state_dict(torch.load(os.path.join(config.ckpt_path, 'epoch-%d-%d.pth' % (config.warm_start_epoch, config.best_fold))))
+        print('Successfully loaded model epoch-%d-%d.pth' % (config.warm_start_epoch, config.best_fold))
+    else :
         model.load_state_dict(torch.load(os.path.join(config.ckpt_path, 'pre-epoch-%d.pth' % config.warm_start_epoch)))
         print('Successfully loaded model pre-epoch-%d.pth' % config.warm_start_epoch)
 
@@ -92,6 +95,8 @@ def main(config, fold):
         # for early stopping
         count = 0
         init_val_loss = float('inf')
+        init_val_plcc = 0
+
         train_losses = []
         val_losses = []
         # for epoch in range(config.warm_start_epoch, config.epochs):
@@ -169,24 +174,25 @@ def main(config, fold):
             # writer.add_scalar('validation_loss', tot_loss['all']/len(val_dst), n_iter)
 
             # Use early stopping to monitor training
-            if avg_val_loss < init_val_loss:
-                init_val_loss = avg_val_loss
+            plcc = metric_results['plcc']
+            if init_val_plcc < plcc:
+                init_val_loss = plcc
                 # save model weights if val loss decreases
                 print('Saving model...')
                 if not os.path.exists(config.ckpt_path):
                     os.makedirs(config.ckpt_path)
-                torch.save(model.state_dict(), os.path.join(config.ckpt_path, 'epoch-%d.pth' % (epoch + 1)))
+                torch.save(model.state_dict(), os.path.join(config.ckpt_path, 'epoch-%d-%d.pth' % (epoch + 1, fold)))
                 print('Done.\n')
                 # reset count
                 count = 0
-            elif avg_val_loss >= init_val_loss:
+            elif init_val_plcc >= plcc:
                 count += 1
                 if count == config.early_stopping_patience:
                     print('Val EMD loss has not decreased in %d epochs. Training terminated.' % config.early_stopping_patience)
                     break
 
         print('Training completed.')
-
+        return init_val_plcc, epoch+1
         '''
         # use tensorboard to log statistics instead
         if config.save_fig:
@@ -199,32 +205,32 @@ def main(config, fold):
             plt.savefig('./loss.png')
         '''
 
-    # if config.test:
-    #     model.eval()
-    #     # compute mean score
-    #     test_transform = val_transform
-    #     # testset = AVADataset(csv_file=config.test_csv_file, root_dir=config.img_path, transform=val_transform)
-    #     testset = TENCENT(type='test', transform=train_transform)
-    #     test_loader = torch.utils.data.DataLoader(testset, batch_size=config.test_batch_size, shuffle=False, num_workers=config.num_workers)
+    if config.test:
+        model.eval()
+        # compute mean score
+        test_transform = val_transform
+        # testset = AVADataset(csv_file=config.test_csv_file, root_dir=config.img_path, transform=val_transform)
+        testset = TENCENT(type='test', transform=train_transform)
+        test_loader = torch.utils.data.DataLoader(testset, batch_size=config.test_batch_size, shuffle=False, num_workers=config.num_workers)
 
-    #     mean_preds = []
-    #     std_preds = []
-    #     for data in test_loader:
-    #         image = data['image'].to(device)
-    #         output = model(image)
-    #         output = output.view(10, 1)
-    #         # 10 classes to 5 classes
-    #         outputs = outputs.view(5, 2, 1)
-    #         # shape = (5, 1)
-    #         outputs = outputs.sum(dim=1)
-    #         predicted_mean, predicted_std = 0.0, 0.0
-    #         for i, elem in enumerate(output, 1):
-    #             predicted_mean += i * elem
-    #         for j, elem in enumerate(output, 1):
-    #             predicted_std += elem * (j - predicted_mean) ** 2
-    #         predicted_std = predicted_std ** 0.5
-    #         mean_preds.append(predicted_mean)
-    #         std_preds.append(predicted_std)
+        mean_preds = []
+        std_preds = []
+        for data in test_loader:
+            image = data['image'].to(device)
+            output = model(image)
+            output = output.view(10, 1)
+            # 10 classes to 5 classes
+            outputs = outputs.view(5, 2, 1)
+            # shape = (5, 1)
+            outputs = outputs.sum(dim=1)
+            predicted_mean, predicted_std = 0.0, 0.0
+            for i, elem in enumerate(output, 1):
+                predicted_mean += i * elem
+            for j, elem in enumerate(output, 1):
+                predicted_std += elem * (j - predicted_mean) ** 2
+            predicted_std = predicted_std ** 0.5
+            mean_preds.append(predicted_mean)
+            std_preds.append(predicted_std)
         # Do what you want with predicted and std...
 
 
@@ -239,7 +245,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_csv_file', type=str, default='./data/test_labels.csv')
 
     # training parameters
-    parser.add_argument('--train',action='store_true', default=True)
+    parser.add_argument('--train',action='store_true')
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--decay', action='store_true')
     # parser.add_argument('--conv_base_lr', type=float, default=5e-3)
@@ -258,7 +264,7 @@ if __name__ == '__main__':
     parser.add_argument('--ckpt_path', type=str, default='./ckpts')
     parser.add_argument('--multi_gpu', type=bool, default=False)
     parser.add_argument('--gpu_ids', type=list, default=None)
-    parser.add_argument('--warm_start', type=bool, default=True)
+    parser.add_argument('--warm_start', type=bool, default=False)
     parser.add_argument('--warm_start_epoch', type=int, default=82)
     parser.add_argument('--early_stopping_patience', type=int, default=10)
     parser.add_argument('--save_fig', action='store_true')
@@ -266,13 +272,30 @@ if __name__ == '__main__':
     parser.add_argument('--conv_base_lr', type=float, default=3e-3)
     parser.add_argument('--dense_lr', type=float, default=3e-3)
 
+    parser.add_argument('--best_fold', type=int, default=1)
+
     config = parser.parse_args()
 
     def _5foldcv() :
+        config.train = True
+        plcc_list = []
+        epoch_list = []
         for i in range(0, 5) :
             print(i+1, ' fold')
-            main(config, i+1)
-
+            plcc, epoch = main(config, i+1)
+            plcc_list.append(plcc)
+            epoch_list.append(epoch)
+        print(plcc_list)
+        print(epoch)
+        best_plcc = max(plcc_list)
+        index = plcc_list.index(best_plcc)
+        best_epoch = epoch_list[index]
+        config.train = False
+        config.test = True
+        config.warm_start_epoc = best_epoch
+        config.best_fold = index + 1
+        print('test')
+        main(config)
     # main(config, fold)
 
     _5foldcv()

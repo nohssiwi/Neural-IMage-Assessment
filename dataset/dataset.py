@@ -48,7 +48,7 @@ class AVADataset(data.Dataset):
 
 
 class TENCENT(data.Dataset):
-    def __init__(self, type, fold, root='Qomex_2020_mobile_game_imges', transform=None):
+    def __init__(self, type, fold=1, root='Qomex_2020_mobile_game_imges', transform=None):
         self.root = root
         self.type = type
         self.transform = transform
