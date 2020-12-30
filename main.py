@@ -230,6 +230,7 @@ def main(config, fold=0):
             metric.update(outputs, labels)
 
         metric_results = metric.get_result()
+        metric_str = ''
         for metric_key in metric_results:
             metric_str += '{} = {}  '.format(metric_key, metric_results[metric_key])
         metric.reset()
