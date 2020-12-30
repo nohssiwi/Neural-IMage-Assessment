@@ -54,8 +54,8 @@ def main(config, fold=0):
     model = NIMA(base_model)
 
     if config.warm_start:
-        model.load_state_dict(torch.load(os.path.join(config.ckpt_path, 'epoch-%d-%d.pth' % (config.warm_start_epoch, config.best_fold))))
-        print('Successfully loaded model epoch-%d-%d.pth' % (config.warm_start_epoch, config.best_fold))
+        model.load_state_dict(torch.load(os.path.join(config.ckpt_path, 'epoch-%d-%d-%s.pth' % (config.warm_start_epoch, config.best_fold, config.task))))
+        print('Successfully loaded model epoch-%d-%d-%s.pth' % (config.warm_start_epoch, config.best_fold, config.task))
     else :
         model.load_state_dict(torch.load(os.path.join(config.ckpt_path, 'pre-epoch-%d.pth' % config.warm_start_epoch)))
         print('Successfully loaded model pre-epoch-%d.pth' % config.warm_start_epoch)
@@ -183,7 +183,7 @@ def main(config, fold=0):
                 print('Saving model...')
                 if not os.path.exists(config.ckpt_path):
                     os.makedirs(config.ckpt_path)
-                torch.save(model.state_dict(), os.path.join(config.ckpt_path, 'epoch-%d-%d.pth' % (epoch + 1, fold)))
+                torch.save(model.state_dict(), os.path.join(config.ckpt_path, 'epoch-%d-%d-%s.pth' % (epoch + 1, fold, config.task)))
                 print('Done.\n')
                 # reset count
                 count = 0
