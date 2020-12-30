@@ -291,21 +291,22 @@ if __name__ == '__main__':
 
     def _5foldcv() :
         config.task = 'h'
-        config.train = True
-        plcc_list = []
-        epoch_list = []
-        for i in range(0, 5) :
-            print(i+1, ' fold')
-            plcc, epoch = main(config, i+1)
-            plcc_list.append(plcc)
-            epoch_list.append(epoch)
-        print(plcc_list)
-        print(epoch)
-        best_plcc = max(plcc_list)
-        index = plcc_list.index(best_plcc)
-        best_epoch = epoch_list[index]
-        # index = 3
-        # best_epoch = 40
+        # config.train = True
+        # plcc_list = []
+        # epoch_list = []
+        # for i in range(0, 5) :
+        #     print(i+1, ' fold')
+        #     plcc, epoch = main(config, i+1)
+        #     plcc_list.append(plcc)
+        #     epoch_list.append(epoch)
+        # print(plcc_list)
+        # print(epoch_list)
+        # best_plcc = max(plcc_list)
+        # index = plcc_list.index(best_plcc)
+        # best_epoch = epoch_list[index]
+
+        index = 1
+        best_epoch = 67
         config.train = False
         config.test = True
         config.warm_start = True
