@@ -175,6 +175,8 @@ def main(config, fold=0):
 
             # Use early stopping to monitor training
             plcc = metric_results['plcc']
+            print(plcc)
+            print(init_val_plcc)
             if init_val_plcc < plcc:
                 init_val_loss = plcc
                 # save model weights if val loss decreases
