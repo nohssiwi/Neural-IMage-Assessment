@@ -178,7 +178,7 @@ def main(config, fold=0):
             print(plcc)
             print(init_val_plcc)
             if init_val_plcc < plcc:
-                init_val_loss = plcc
+                init_val_plcc = plcc
                 # save model weights if val loss decreases
                 print('Saving model...')
                 if not os.path.exists(config.ckpt_path):
