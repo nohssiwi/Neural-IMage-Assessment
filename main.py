@@ -222,7 +222,7 @@ def main(config, fold=0):
             labels = data[1].to(device).float()
             with torch.no_grad():
                 outputs = model(images)
-            outputs = output.view(-1, 10, 1)
+            outputs = outputs.view(-1, 10, 1)
             # 10 classes to 5 classes
             outputs = outputs.view(-1, 5, 2, 1)
             # shape = (-1, 5, 1)
