@@ -48,15 +48,19 @@ class AVADataset(data.Dataset):
 
 
 class TENCENT(data.Dataset):
-    def __init__(self, type, root='Qomex_2020_mobile_game_imges', transform=None):
+    def __init__(self, type, fold, root='Qomex_2020_mobile_game_imges', transform=None):
         self.root = root
         self.type = type
         self.transform = transform
+        self.fold = fold
 
         data = pd.read_csv(root + '/subjective_scores_v2/all.csv')
+        data = data[data['type']!='train']
+        cv = pd.read_csv(root + '/subjective_scores_v2/5fold.csv')
 
         dataset = {
-            'train' : [], 
+            'cv_train' : [], 
+            'cv_val' : [], 
             'val' : [],
             'test' : []
         }
@@ -69,12 +73,24 @@ class TENCENT(data.Dataset):
                 'label_f' : torch.tensor(self.distribution(row['f_0':'f_19'])),
                 'label_o' : torch.tensor(self.distribution(row['o_0':'o_19']))
             }
-            if row['type'] == 'train' :
-                dataset['train'].append(item)
-            elif row['type'] == 'validation' :
+            if row['type'] == 'validation' :
                 dataset['val'].append(item)
             else :
                 dataset['test'].append(item)
+                
+        for index, row in cv.iterrows():
+            item = {
+                'filename' : row['filename'],
+                'label_h' : torch.tensor(self.distribution(row['h_0':'h_19'])),
+                'label_c' : torch.tensor(self.distribution(row['c_0':'c_19'])),
+                'label_f' : torch.tensor(self.distribution(row['f_0':'f_19'])),
+                'label_o' : torch.tensor(self.distribution(row['o_0':'o_19']))
+            }
+        
+            if row['5fold'] == self.fold :
+                dataset['cv_val'].append(item)
+            else :
+                dataset['cv_train'].append(item)
 
         self.dataset = dataset
 

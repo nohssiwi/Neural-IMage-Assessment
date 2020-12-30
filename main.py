@@ -32,7 +32,7 @@ from model.model import *
 import metrics as metrics_selector
 
 
-def main(config):
+def main(config, fold):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     writer = SummaryWriter()
@@ -79,8 +79,8 @@ def main(config):
 
     if config.train:
         
-        trainset = TENCENT(type='train', transform=train_transform)
-        valset = TENCENT(type='val', transform=val_transform)
+        trainset = TENCENT(type='cv_train', fold=fold, transform=train_transform)
+        valset = TENCENT(type='cv_val', fold=fold, transform=val_transform)
         
         # trainset = AVADataset(csv_file=config.train_csv_file, root_dir=config.img_path, transform=train_transform)
         # valset = AVADataset(csv_file=config.val_csv_file, root_dir=config.img_path, transform=val_transform)
@@ -199,32 +199,32 @@ def main(config):
             plt.savefig('./loss.png')
         '''
 
-    if config.test:
-        model.eval()
-        # compute mean score
-        test_transform = val_transform
-        # testset = AVADataset(csv_file=config.test_csv_file, root_dir=config.img_path, transform=val_transform)
-        testset = TENCENT(type='test', transform=train_transform)
-        test_loader = torch.utils.data.DataLoader(testset, batch_size=config.test_batch_size, shuffle=False, num_workers=config.num_workers)
+    # if config.test:
+    #     model.eval()
+    #     # compute mean score
+    #     test_transform = val_transform
+    #     # testset = AVADataset(csv_file=config.test_csv_file, root_dir=config.img_path, transform=val_transform)
+    #     testset = TENCENT(type='test', transform=train_transform)
+    #     test_loader = torch.utils.data.DataLoader(testset, batch_size=config.test_batch_size, shuffle=False, num_workers=config.num_workers)
 
-        mean_preds = []
-        std_preds = []
-        for data in test_loader:
-            image = data['image'].to(device)
-            output = model(image)
-            output = output.view(10, 1)
-            # 10 classes to 5 classes
-            outputs = outputs.view(5, 2, 1)
-            # shape = (5, 1)
-            outputs = outputs.sum(dim=1)
-            predicted_mean, predicted_std = 0.0, 0.0
-            for i, elem in enumerate(output, 1):
-                predicted_mean += i * elem
-            for j, elem in enumerate(output, 1):
-                predicted_std += elem * (j - predicted_mean) ** 2
-            predicted_std = predicted_std ** 0.5
-            mean_preds.append(predicted_mean)
-            std_preds.append(predicted_std)
+    #     mean_preds = []
+    #     std_preds = []
+    #     for data in test_loader:
+    #         image = data['image'].to(device)
+    #         output = model(image)
+    #         output = output.view(10, 1)
+    #         # 10 classes to 5 classes
+    #         outputs = outputs.view(5, 2, 1)
+    #         # shape = (5, 1)
+    #         outputs = outputs.sum(dim=1)
+    #         predicted_mean, predicted_std = 0.0, 0.0
+    #         for i, elem in enumerate(output, 1):
+    #             predicted_mean += i * elem
+    #         for j, elem in enumerate(output, 1):
+    #             predicted_std += elem * (j - predicted_mean) ** 2
+    #         predicted_std = predicted_std ** 0.5
+    #         mean_preds.append(predicted_mean)
+    #         std_preds.append(predicted_std)
         # Do what you want with predicted and std...
 
 
@@ -242,8 +242,8 @@ if __name__ == '__main__':
     parser.add_argument('--train',action='store_true')
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--decay', action='store_true')
-    parser.add_argument('--conv_base_lr', type=float, default=5e-3)
-    parser.add_argument('--dense_lr', type=float, default=5e-4)
+    # parser.add_argument('--conv_base_lr', type=float, default=5e-3)
+    # parser.add_argument('--dense_lr', type=float, default=5e-4)
     parser.add_argument('--lr_decay_rate', type=float, default=0.95)
     parser.add_argument('--lr_decay_freq', type=int, default=10)
     # parser.add_argument('--train_batch_size', type=int, default=128)
@@ -263,7 +263,15 @@ if __name__ == '__main__':
     parser.add_argument('--early_stopping_patience', type=int, default=10)
     parser.add_argument('--save_fig', action='store_true')
 
+    parser.add_argument('--conv_base_lr', type=float, default=3e-3)
+    parser.add_argument('--dense_lr', type=float, default=3e-3)
+
     config = parser.parse_args()
 
-    main(config)
+    def _5foldcv() :
+        for i in rang(0, 5) :
+            main(config, i+1)
 
+    # main(config, fold)
+
+    _5foldcv()
