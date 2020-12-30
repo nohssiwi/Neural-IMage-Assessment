@@ -218,21 +218,31 @@ def main(config, fold=0):
         mean_preds = []
         std_preds = []
         for data in test_loader:
-            image = data['image'].to(device)
-            output = model(image)
-            output = output.view(10, 1)
+            images = data[0].to(device)
+            labels = data[1].to(device).float()
+            with torch.no_grad():
+                outputs = model(images)
+            outputs = output.view(-1, 10, 1)
             # 10 classes to 5 classes
-            outputs = outputs.view(5, 2, 1)
-            # shape = (5, 1)
-            outputs = outputs.sum(dim=1)
-            predicted_mean, predicted_std = 0.0, 0.0
-            for i, elem in enumerate(output, 1):
-                predicted_mean += i * elem
-            for j, elem in enumerate(output, 1):
-                predicted_std += elem * (j - predicted_mean) ** 2
-            predicted_std = predicted_std ** 0.5
-            mean_preds.append(predicted_mean)
-            std_preds.append(predicted_std)
+            outputs = outputs.view(-1, 5, 2, 1)
+            # shape = (-1, 5, 1)
+            outputs = outputs.sum(dim=2)
+            metric.update(outputs, labels)
+
+        metric_results = metric.get_result()
+        for metric_key in metric_results:
+            metric_str += '{} = {}  '.format(metric_key, metric_results[metric_key])
+        metric.reset()
+        print(metric_str)
+        
+            # predicted_mean, predicted_std = 0.0, 0.0
+            # for i, elem in enumerate(output, 1):
+            #     predicted_mean += i * elem
+            # for j, elem in enumerate(output, 1):
+            #     predicted_std += elem * (j - predicted_mean) ** 2
+            # predicted_std = predicted_std ** 0.5
+            # mean_preds.append(predicted_mean)
+            # std_preds.append(predicted_std)
         # Do what you want with predicted and std...
 
 
@@ -279,21 +289,24 @@ if __name__ == '__main__':
     config = parser.parse_args()
 
     def _5foldcv() :
-        config.train = True
-        plcc_list = []
-        epoch_list = []
-        for i in range(0, 5) :
-            print(i+1, ' fold')
-            plcc, epoch = main(config, i+1)
-            plcc_list.append(plcc)
-            epoch_list.append(epoch)
-        print(plcc_list)
-        print(epoch)
-        best_plcc = max(plcc_list)
-        index = plcc_list.index(best_plcc)
-        best_epoch = epoch_list[index]
+        # config.train = True
+        # plcc_list = []
+        # epoch_list = []
+        # for i in range(0, 5) :
+        #     print(i+1, ' fold')
+        #     plcc, epoch = main(config, i+1)
+        #     plcc_list.append(plcc)
+        #     epoch_list.append(epoch)
+        # print(plcc_list)
+        # print(epoch)
+        # best_plcc = max(plcc_list)
+        # index = plcc_list.index(best_plcc)
+        # best_epoch = epoch_list[index]
+        index = 3
+        best_epoch = 40
         config.train = False
         config.test = True
+        config.warm_start = True
         config.warm_start_epoc = best_epoch
         config.best_fold = index + 1
         print('test')
