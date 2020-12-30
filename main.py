@@ -270,6 +270,7 @@ if __name__ == '__main__':
 
     def _5foldcv() :
         for i in rang(0, 5) :
+            print(i+1, ' fold')
             main(config, i+1)
 
     # main(config, fold)
