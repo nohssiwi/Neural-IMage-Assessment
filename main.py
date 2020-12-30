@@ -306,7 +306,7 @@ if __name__ == '__main__':
         # best_epoch = epoch_list[index]
 
         index = 1
-        best_epoch = 67
+        best_epoch = 57
         config.train = False
         config.test = True
         config.warm_start = True
