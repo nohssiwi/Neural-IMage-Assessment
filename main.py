@@ -239,7 +239,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_csv_file', type=str, default='./data/test_labels.csv')
 
     # training parameters
-    parser.add_argument('--train',action='store_true')
+    parser.add_argument('--train',action='store_true', default=True)
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--decay', action='store_true')
     # parser.add_argument('--conv_base_lr', type=float, default=5e-3)
