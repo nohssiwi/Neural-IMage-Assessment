@@ -269,7 +269,7 @@ if __name__ == '__main__':
     config = parser.parse_args()
 
     def _5foldcv() :
-        for i in rang(0, 5) :
+        for i in range(0, 5) :
             print(i+1, ' fold')
             main(config, i+1)
 
