@@ -48,11 +48,12 @@ class AVADataset(data.Dataset):
 
 
 class TENCENT(data.Dataset):
-    def __init__(self, type, fold=1, root='Qomex_2020_mobile_game_imges', transform=None):
+    def __init__(self, type, task='o', fold=1, root='Qomex_2020_mobile_game_imges', transform=None):
         self.root = root
         self.type = type
         self.transform = transform
         self.fold = fold
+        self.task = task
 
         data = pd.read_csv(root + '/subjective_scores_v2/all.csv')
         data = data[data['type']!='train']
@@ -118,9 +119,18 @@ class TENCENT(data.Dataset):
     
         if self.transform:
             img = self.transform(img)
-
+        if (self.task == 'o') :
+            label = label_o 
+        elif (self.task == 'h') :
+            label = label_h 
+        elif (self.task == 'c') :
+            label = label_c 
+        elif (self.task == 'f') :
+            label = label_f
+        else :
+            print('error task')
         # return img, label_h, label_c, label_f, label_o
-        return img, label_o
+        return img, label
 
 
 if __name__ == '__main__':

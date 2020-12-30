@@ -82,8 +82,8 @@ def main(config, fold=0):
 
     if config.train:
         
-        trainset = TENCENT(type='cv_train', fold=fold, transform=train_transform)
-        valset = TENCENT(type='cv_val', fold=fold, transform=val_transform)
+        trainset = TENCENT(type='cv_train', task=config.task, fold=fold, transform=train_transform)
+        valset = TENCENT(type='cv_val', task=config.task, fold=fold, transform=val_transform)
         
         # trainset = AVADataset(csv_file=config.train_csv_file, root_dir=config.img_path, transform=train_transform)
         # valset = AVADataset(csv_file=config.val_csv_file, root_dir=config.img_path, transform=val_transform)
@@ -212,7 +212,7 @@ def main(config, fold=0):
         # compute mean score
         test_transform = val_transform
         # testset = AVADataset(csv_file=config.test_csv_file, root_dir=config.img_path, transform=val_transform)
-        testset = TENCENT(type='test', transform=train_transform)
+        testset = TENCENT(type='test', task=config.task, transform=train_transform)
         test_loader = torch.utils.data.DataLoader(testset, batch_size=config.test_batch_size, shuffle=False, num_workers=config.num_workers)
 
         mean_preds = []
@@ -286,25 +286,26 @@ if __name__ == '__main__':
     parser.add_argument('--dense_lr', type=float, default=3e-3)
 
     parser.add_argument('--best_fold', type=int, default=1)
-
+    parser.add_argument('--task', type=str, default='o')
     config = parser.parse_args()
 
     def _5foldcv() :
-        # config.train = True
-        # plcc_list = []
-        # epoch_list = []
-        # for i in range(0, 5) :
-        #     print(i+1, ' fold')
-        #     plcc, epoch = main(config, i+1)
-        #     plcc_list.append(plcc)
-        #     epoch_list.append(epoch)
-        # print(plcc_list)
-        # print(epoch)
-        # best_plcc = max(plcc_list)
-        # index = plcc_list.index(best_plcc)
-        # best_epoch = epoch_list[index]
-        index = 3
-        best_epoch = 40
+        config.task = 'h'
+        config.train = True
+        plcc_list = []
+        epoch_list = []
+        for i in range(0, 5) :
+            print(i+1, ' fold')
+            plcc, epoch = main(config, i+1)
+            plcc_list.append(plcc)
+            epoch_list.append(epoch)
+        print(plcc_list)
+        print(epoch)
+        best_plcc = max(plcc_list)
+        index = plcc_list.index(best_plcc)
+        best_epoch = epoch_list[index]
+        # index = 3
+        # best_epoch = 40
         config.train = False
         config.test = True
         config.warm_start = True
