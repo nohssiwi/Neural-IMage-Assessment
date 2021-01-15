@@ -222,6 +222,9 @@ def main(config, fold=0):
         for data in test_loader:
             images = data[0].to(device)
             labels = data[1].to(device).float()
+            # filename
+            filename = data[2]
+
             with torch.no_grad():
                 outputs = model(images)
             outputs = outputs.view(-1, 10, 1)
@@ -230,6 +233,14 @@ def main(config, fold=0):
             # shape = (-1, 5, 1)
             outputs = outputs.sum(dim=2)
             metric.update(outputs, labels)
+
+            # predict score
+            score = metric.calculate_score(outputs.data.cpu().numpy().reshape(-1,5))
+            # write file
+            pred_txt = '{} : {}'.format(filename, score)
+            fw = './pred_' + config.task + '.txt'
+            with open(fw, 'a') as f:
+                f.write(pred_txt)
 
         metric_results = metric.get_result()
         metric_str = ''

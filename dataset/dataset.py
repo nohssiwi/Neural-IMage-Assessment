@@ -130,7 +130,7 @@ class TENCENT(data.Dataset):
         else :
             print('error task')
         # return img, label_h, label_c, label_f, label_o
-        return img, label
+        return img, label, filename
 
 
 if __name__ == '__main__':
