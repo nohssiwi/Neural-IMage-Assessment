@@ -56,7 +56,7 @@ class TENCENT(data.Dataset):
         self.task = task
 
         data = pd.read_csv(root + '/subjective_scores_v2/all.csv')
-        data = data[data['type']!='train']
+        # data = data[data['type']!='train']
         cv = pd.read_csv(root + '/subjective_scores_v2/5fold.csv')
 
         dataset = {

@@ -242,7 +242,7 @@ def main(config, fold=0):
             gt_score = calculate_score(labels.data.cpu().numpy().reshape(-1,5))
             # write file
             pred_txt = '{}; pred = {}; gt = {}\n'.format(filename, pred_score, gt_score)
-            fw = './pred_' + config.task + '.txt'
+            fw = './pred_' + config.task + '.csv'
             with open(fw, 'a') as f:
                 f.write(pred_txt)
 
