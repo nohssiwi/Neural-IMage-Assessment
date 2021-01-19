@@ -31,7 +31,7 @@ from model.model import *
 
 import metrics as metrics_selector
 
-def calculate_score(self, dis):
+def calculate_score(dis):
     weights = np.array([1, 2, 3, 4 ,5])
     return np.sum(dis * weights, axis=1)
 
