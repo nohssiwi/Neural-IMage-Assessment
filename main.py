@@ -31,6 +31,9 @@ from model.model import *
 
 import metrics as metrics_selector
 
+def calculate_score(self, dis):
+    weights = np.array([1, 2, 3, 4 ,5])
+    return np.sum(dis * weights, axis=1)
 
 def main(config, fold=0):
 
@@ -235,9 +238,10 @@ def main(config, fold=0):
             metric.update(outputs, labels)
 
             # predict score
-            score = metric.calculate_score(outputs.data.cpu().numpy().reshape(-1,5))
+            pred_score = calculate_score(outputs.data.cpu().numpy().reshape(-1,5))
+            gt_score = calculate_score(labels.data.cpu().numpy().reshape(-1,5))
             # write file
-            pred_txt = '{} : {}'.format(filename, score)
+            pred_txt = '{} : pred = {}\tgt = {}'.format(filename, pred_score, gt_score)
             fw = './pred_' + config.task + '.txt'
             with open(fw, 'a') as f:
                 f.write(pred_txt)
@@ -303,23 +307,23 @@ if __name__ == '__main__':
     config = parser.parse_args()
 
     def _5foldcv() :
-        config.task = 'c'
-        config.train = True
-        plcc_list = []
-        epoch_list = []
-        for i in range(0, 5) :
-            print(i+1, ' fold')
-            plcc, epoch = main(config, i+1)
-            plcc_list.append(plcc)
-            epoch_list.append(epoch)
-        print(plcc_list)
-        print(epoch_list)
-        best_plcc = max(plcc_list)
-        index = plcc_list.index(best_plcc)
-        best_epoch = epoch_list[index]
+        config.task = 'o'
+        # config.train = True
+        # plcc_list = []
+        # epoch_list = []
+        # for i in range(0, 5) :
+        #     print(i+1, ' fold')
+        #     plcc, epoch = main(config, i+1)
+        #     plcc_list.append(plcc)
+        #     epoch_list.append(epoch)
+        # print(plcc_list)
+        # print(epoch_list)
+        # best_plcc = max(plcc_list)
+        # index = plcc_list.index(best_plcc)
+        # best_epoch = epoch_list[index]
 
-        # index = 1
-        # best_epoch = 57
+        index = 3
+        best_epoch = 40
         config.train = False
         config.test = True
         config.warm_start = True
